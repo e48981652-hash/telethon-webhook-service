@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  telethon-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telethon-webhook-service
+    
+    ports:
+      - "${SERVER_PORT:-8000}:8000"
+    
+    env_file:
+      - .env
+    
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    
+    restart: unless-stopped
+    
+    volumes:
+      - ./sessions:/app/sessions
+      - ./logs:/app/logs
+    
+    networks:
+      - telethon-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  telethon-network:
+    driver: bridge
+
+volumes:
+  sessions:
+  logs:
