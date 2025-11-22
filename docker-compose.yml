@@ -5,27 +5,38 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VERSION=2.1.0
+    
+    image: drhema9/telethon-webhook-service:2.1.0
     container_name: telethon-webhook-service
     
+    # Ports
     ports:
       - "${SERVER_PORT:-8000}:8000"
     
+    # Environment
     env_file:
       - .env
     
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
+      - VERSION=2.1.0
     
+    # Restart policy
     restart: unless-stopped
     
+    # Volumes
     volumes:
       - ./sessions:/app/sessions
       - ./logs:/app/logs
     
+    # Network
     networks:
       - telethon-network
     
+    # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -33,6 +44,7 @@ services:
       retries: 3
       start_period: 40s
     
+    # Resource limits
     deploy:
       resources:
         limits:
@@ -41,11 +53,21 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   telethon-network:
     driver: bridge
+    name: telethon-network
 
 volumes:
   sessions:
+    driver: local
   logs:
+    driver: local
